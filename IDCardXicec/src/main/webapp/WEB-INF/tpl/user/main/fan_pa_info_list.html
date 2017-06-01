@@ -1,0 +1,191 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>中国·厦门会展金泓信展览反扒名单</title>
+
+    <link rel="stylesheet" type="text/css" href="${base}/resource/easyui/themes/metro-blue/easyui.css">
+    <link rel="stylesheet" type="text/css" href="${base}/resource/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="${base}/resource/idcard/css/pagination.css">
+    <script type="text/javascript" src="${base}/resource/jquery.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/empty-view.js"></script>
+    <script type="text/javascript" src="${base}/resource/ajaxfileupload.js"></script>
+    <script type="text/javascript" src="${base}/resource/common.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/easyui-validate.js"></script>
+    <script src="${base}/resource/idcard/js/jquery.pagination.js" type="text/javascript"></script>
+
+    <style>
+        .idtr>th{
+
+            margin-bottom: 20px;paddingbottom:20px;
+            box-sizing: border-box;
+        }
+        .idtr>th>span{
+            font-family: "微软雅黑";
+            font-size: 14px;
+            color:#666666;
+            font-weight: bold;
+        }
+        #content{
+
+            padding-top:20px;
+            box-sizing: border-box;
+        }
+        #content>tr>td{
+
+            text-align:center;
+            font-family: "微软雅黑";
+            font-size: 12px;
+            color:#666666;
+            line-height:20px;
+        }
+    </style>
+
+</head>
+
+<body class="skin-blue sidebar-collapse">
+<div class="wrapper">
+    <div class="content-wrapper" style="overflow:visible;" >
+        <section class="content">
+            <table >
+                <thead style="margin-bottom: 20px;">
+                <tr class="idtr">
+                    <th width="80px"><span>身份证号</span><br/><br/>
+                        <input id="userCardNo" style="width:70%;height:16px;" type="text" onkeyup="filter();"/>
+                    </th>
+                    <th width="150px"><span>条形码</span><br/><br/>
+                        <input id="userBarCode" style="width:80%;height:16px;" type="text" onkeyup="filter();"/>
+                    </th>
+                    <th width="150px"><span>办证时间</span><br/><br/>
+                    </th>
+                    <th width="120px"><span>查看身份证图片</span><br/><br/>
+                    </th>
+                </tr>
+                </thead>
+                <div class="margin-top:20px !important;">
+                <tbody id="content" style="margin-left: 100px"></tbody>
+                </div>
+
+            </table>
+        </section>
+    </div>
+    <div style="overflow: hidden;clear: both;background:#ecf0f5;padding: 5px 10px;box-sizing: border-box;">
+        <div class="dataTables_info" style="float:left;margin: 20px 0;" role="status" aria-live="polite">共 <label id="totalSumPage"></label> 页 <label id="totalSumValue"></label> 条记录</div>
+        <div id="pagination" class="pagination extra-property"></div>
+    </div>
+</div>
+
+<script>
+    var pageSize = 20;          //每页显示多少条记录
+    var pageCurrentIndex = 0;
+    var totalSize;             //总共多少记录
+    var filterParm = "?";
+    setInterval('filter_fanpalist();', 300000);
+    /*setInterval('filter_fanpalist();', 60000);*/
+
+    $(document).ready(function () {
+        Init(pageCurrentIndex + 1);
+        initPaginationView();
+    });
+
+    function Init(pageIndex){      //这个参数就是点击的那个分页的页数索引值，第一页为0，上面提到了，下面这部分就是AJAX传值了
+        var temp = (filterParm=="?"?"${base}/user/queryFanPaInfoListByPage?pageIndex="+pageIndex:"${base}/user/queryFanPaInfoListByPage" + filterParm);
+        $.ajax({
+            type: "post",
+            url:temp,
+            async: false,
+            dataType: "json",
+            success: function (data) {
+                $("#content").empty();
+                var array = data.rows;
+                if(pageIndex<2){
+                    document.getElementById("totalSumPage").innerHTML = parseInt(data.total/pageSize) + 1;
+                    document.getElementById("totalSumValue").innerHTML = data.total;
+                }
+                totalSize = data.total;
+                for(var i=0;i<array.length;i++){
+                    var info = array[i];
+                    if(info != null){
+                        var hrefValue = "<a href='${base}/user/showIdCardImagePageByCardNo?cardno=" + info.cardno + "' target='_blank'>查看</a>";
+                        $("#content").append("<tr><td>" + info.cardno + "</td><td>" + info.barcode + "</td><td>" + info.creatime+ "</td><td>" + hrefValue + "</td></tr>");
+                    }
+                }
+            },
+            error: function () {
+                //alert("请求超时，请重试！");
+            }
+        });
+    }
+
+    function initPaginationView() {
+        $("#pagination").pagination(totalSize,    //分页总数量，必须参数
+            {
+                callback: function (pageCurrentIndex) {  //为翻页调用次函数。
+                    Init(pageCurrentIndex+1);
+                    return false;
+                },
+                prev_text: "« 上一页",
+                next_text: "下一页 »",
+                activeCls: "active",
+                homePage: "首页",
+                endPage: "末页",
+                items_per_page: pageSize,
+                num_edge_entries: 5,       //两侧首尾分页条目数
+                num_display_entries: 10,    //连续分页主体部分分页条目数
+                current_page: pageCurrentIndex,   //当前页索引
+                link_to: "?page=__id__", //分页的js中会自动把"__id__"替换为当前的数：1
+            });
+    }
+    function filter(){
+        filterParm = "?";
+        if(document.getElementById("userCardNo").value != ""){
+            filterParm += '&cardno=' + encodeURI(document.getElementById("userCardNo").value);
+        }
+        if(document.getElementById("userBarCode").value != ""){
+            filterParm += '&barcode=' + encodeURI(document.getElementById("userBarCode").value);
+        }
+        /*if(document.getElementById("userDate").value != ""){
+            filterParm += '&date=' + encodeURI(document.getElementById("userDate").value);
+        }*/
+
+        Init(pageCurrentIndex + 1);
+        initPaginationView();
+    }
+
+    function formatDatebox(value) {
+        if (value == null || value == '') {
+            return '';
+        }
+        var dt;
+        if (value instanceof Date) {
+            dt = value;
+        }
+        else {
+            dt = new Date(value);
+            if (isNaN(dt)) {
+                value = value.replace(/\/Date\((-?\d+)\)\//, '$1'); //标红的这段是关键代码，将那个长字符串的日期值转换成正常的JS日期格式
+                dt = new Date();
+                dt.setTime(value);
+            }
+        }
+
+        return dt.format("yyyy-MM-dd h:m");   //这里用到一个javascript的Date类型的拓展方法，这个是自己添加的拓展方法，在后面的步骤3定义
+    }
+
+    function filter_fanpalist() {
+        $.ajax({
+            url: "${base}/user/filterfanpalist",
+            type: "post",
+            async: false,
+            dataType: "json",
+            success: function (data) {
+                Init(pageCurrentIndex + 1);
+                initPaginationView();
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+    <title>中国·厦门会展金泓信展览身份证门禁系统</title>
+    <!--<meta http-equiv="refresh" content="2">-->
+    <link rel="stylesheet" type="text/css" href="${base}/resource/easyui/themes/metro-blue/easyui.css">
+    <link rel="stylesheet" type="text/css" href="${base}/resource/easyui/themes/icon.css">
+    <script type="text/javascript" src="${base}/resource/jquery.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/empty-view.js"></script>
+    <script type="text/javascript" src="${base}/resource/ajaxfileupload.js"></script>
+    <script type="text/javascript" src="${base}/resource/common.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/easyui-validate.js"></script>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+        }
+
+        input {
+            width: 200px;
+            height: 20px;
+        }
+
+        dlgdiv{
+            background: url("${base}/resource/idcardinfobg.png");
+        }
+        .table_style tr td{text-align: center;height: 30px;line-height: 30px;}
+    </style>
+</head>
+<body style="text-align: center" onload="Button1_onclick()">
+<div id="wholebg" style="position: fixed;top:0;z-index: -1000;"><img alt="" src="${base}/resource/idcardbg.jpg" style="width: 100%;"></div>
+<OBJECT classid="clsid:10946843-7507-44FE-ACE8-2B3483D179B7" codebase="CVR100.cab#version=3,0,3,3" id="CVR_IDCard" name="CVR_IDCard" width="0" height="0"></OBJECT>
+<!-- 身份证读卡显示信息界面 -->
+<tr id="idCardInfoDlg" data-options="iconCls:'icon-edit',modal:true" class="dlgdiv">
+    <form id="idCardInfoForm"  name="idCardInfoForm" style="background: url('${base}/resource/idcardinfobg.jpg');background-repeat: no-repeat" enctype="multipart/form-data">
+        <table style="width: 390px; height: 440px; border-top-style: groove; border-right-style: groove; border-left-style: groove; background-color: transparent; border-bottom-style: groove;">
+            <tr>
+                <td></td>
+                <td style="width: 120px; text-align: center;" colspan="2">
+                    <img style="width: 120px; height: 140px; padding-top: 70px" id="idCardPic" name="idCardPic" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="width: 80px; text-align: center" colspan="2">
+                    <font size="14" color="#666666"><label id="idCardName" type="text" name="idCardName" style="width: 155px" /></font>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="width: 80px; text-align: center" colspan="2">
+                    <font size="14" color="#666666"><label id="idCardSex" type="text" name="idCardSex" style="width: 155px" /></font>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="width: 80px; text-align: center" colspan="2">
+                    <font size="14" color="#666666"><label id="idCardNation" type="text" name="idCardNation" style="width: 155px" /></font>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="width: 80px; text-align: center" colspan="4">
+                    备注：<input id="idCardRemark" type="text" name="idCardRemark" style="width: 60%;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 80px; text-align: center" colspan="4">
+                    条形码：<input id="idCardBarCode" type="text" name="idCardBarCode" style="width: 60%;"
+                               oninput="(this.v = function(){this.value = this.value.replace(/[^0-9-]+/,'');}).call(this)"/>
+                </td>
+            </tr>
+            <input type="hidden" id="Name" name="Name"/>
+            <input type="hidden" id="Sex" name="Sex"/>
+            <input type="hidden" id="Nation" name="Nation"/>
+            <input type="hidden" id="Born" name="Born"/>
+            <input type="hidden" id="Address" name="Address"/>
+            <input type="hidden" id="CardNo" name="CardNo"/>
+            <input type="hidden" id="IssuedAt" name="IssuedAt"/>
+            <input type="hidden" id="EffectedDate" name="EffectedDate"/>
+            <input type="hidden" id="ExpiredDate" name="ExpiredDate"/>
+            <input type="hidden" id="SAMID" name="SAMID"/>
+            <input type="hidden" id="pic" name="pic"/>
+            <input type="hidden" id="Picture" name="Picture"/>
+            <input type="hidden" id="PictureLen" name="PictureLen"/>
+        </table>
+    </form>
+</div>
+<span style="position: absolute;left:60px;bottom:30px;color:#ff0000;z-index: 1000;display: block;" id="idscannum" name="idscannum"></span>
+<script>
+    var readIdCard = setInterval('Button1_onclick();', 1000);
+    var codeLength = 9;
+    $(document).ready(function () {
+        var idCardText = document.getElementById('idCardBarCode');
+        document.all['idscannum'].style.fontSize = "60px";
+        document.all['idscannum'].innerHTML = "识别器初始化成功";
+        idCardText.onkeyup = function () {
+            if (this.value && (codeLength == this.value.length)) {
+                submitBarCode(this.value);
+            }
+        };
+
+        $('#idCardBarCode').bind('input propertychange', function() {
+            var length = $(this).val().length;
+            var textValue = $(this).val();
+            if (codeLength == length){
+                submitBarCode(textValue);
+            }
+        });
+    });
+
+    function submitBarCode(barCodeValue) {
+        $.ajax({
+            url: "${base}/user/saveIdCardInfo",
+            type: "post",
+            async: false, //同步执行
+            data: {
+                "name": document.all['Name'].value,
+                "sex":document.all['Sex'].value,
+                "nation":document.all['Nation'].value,
+                "born":document.all['Born'].value,
+                "address":document.all['Address'].value,
+                "cardno":document.all['CardNo'].value,
+                "issuedat":document.all['IssuedAt'].value,
+                "effecteddate":document.all['EffectedDate'].value,
+                "expireddate":document.all['ExpiredDate'].value,
+                "samid":document.all['SAMID'].value,
+                "pic":document.all['pic'].src,
+                "picture":document.all['Picture'].value,
+                "picturylen":document.all['PictureLen'].value,
+                "barcode": barCodeValue,
+                "remark": document.all['idCardRemark'].value,
+            },
+            dataType: "json",
+            success: function (data) {
+                setTimeout(out, 500);
+                readIdCard = setInterval('Button1_onclick();', 1000);
+                document.getElementById("idCardBarCode").value = "";
+                //document.getElementById("idCardBarCode").focus();
+                if(data.resultCode == 0){
+                    document.all['idscannum'].style.fontSize = "60px";
+                }else {
+                    document.all['idscannum'].style.fontSize = "30px";
+                }
+                document.all['idscannum'].innerHTML = data.description;
+                ClearForm();
+            }
+        });
+    }
+
+    function ClearForm() {
+        document.getElementById("idCardName").innerHTML = "";
+        document.getElementById("idCardPic").src = "";
+        document.getElementById("idCardSex").innerHTML = "";
+        document.getElementById("idCardNation").innerHTML = "";
+        document.getElementById("idCardRemark").value = "";
+        return true;
+    }
+
+    function Button1_onclick() {
+        //document.getElementById("idCardBarCode").focus();
+        var CVR_IDCard = document.getElementById("CVR_IDCard");
+        var strReadResult = CVR_IDCard.ReadCard();
+        //$('embed').remove();
+        if (strReadResult == "0") {
+            ClearForm();
+            clearInterval(readIdCard);
+            document.getElementById("idCardName").innerHTML = CVR_IDCard.Name;
+            document.getElementById("idCardPic").src = CVR_IDCard.Pic;
+            document.getElementById("idCardSex").innerHTML = CVR_IDCard.Sex;
+            document.getElementById("idCardNation").innerHTML = CVR_IDCard.Nation;
+
+            document.all['Name'].value = CVR_IDCard.Name;
+            document.all['Sex'].value = CVR_IDCard.Sex;
+            document.all['Nation'].value = CVR_IDCard.Nation;
+            document.all['Born'].value = CVR_IDCard.Born;
+            document.all['Address'].value = CVR_IDCard.Address;
+            document.all['CardNo'].value = CVR_IDCard.CardNo;
+            document.all['IssuedAt'].value = CVR_IDCard.IssuedAt;
+            document.all['EffectedDate'].value = CVR_IDCard.EffectedDate;
+            document.all['ExpiredDate'].value = CVR_IDCard.ExpiredDate;
+            document.all['SAMID'].value = CVR_IDCard.SAMID;
+            document.all['pic'].src = CVR_IDCard.Pic;
+            document.all['Picture'].value = CVR_IDCard.Picture;
+            document.all['PictureLen'].value = CVR_IDCard.PictureLen;
+
+            $.ajax({
+                url: "${base}/user/queryIdCardInfo",
+                type: "post",
+                async: false, //同步执行
+                data: {"cardno":CVR_IDCard.CardNo, "imagepath": CVR_IDCard.Pic},
+                dataType: "json",
+                success: function (data) {
+                    if(data.resultCode == 0){
+                        document.all['idscannum'].style.fontSize = "60px";
+                    }else {
+                        document.all['idscannum'].style.fontSize = "30px";
+                    }
+                    document.all['idscannum'].innerHTML = data.description;
+                }
+            });
+            //clearInterval(readIdCard);
+            //$('body').append("<embed id='player' src='${base}/resource/idcardsound.mp3' width='0' height='0' loop='false' volume='30' />");
+            $("#idCardInfoDlg").dialog("open");
+        } else {
+            //$('embed').remove();
+            //$("#idCardInfoDlg").dialog("close");
+            ClearForm();
+            //alert(strReadResult);
+        }
+    }
+
+    function out(){
+        $("#idCardInfoDlg").dialog("close");
+    }
+
+    //身份证信息显示框
+    $('#idCardInfoDlg').dialog({
+        title: '身份证信息',
+        width: 405,
+        height: 550,
+        closed: true,
+        cache: false,
+        modal: true,
+        buttons: [
+            {
+                text: '取消',
+                handler: function () {
+                    //$('embed').remove();
+                    ClearForm();
+                    readIdCard = setInterval('Button1_onclick();', 1000);
+                    $("#idCardInfoDlg").dialog("close");
+                }
+            }
+        ]
+    });
+</script>
+</body>
+</html>

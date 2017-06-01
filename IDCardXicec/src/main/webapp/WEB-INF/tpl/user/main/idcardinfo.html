@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>金泓信身份证读卡平台</title>
+    <meta http-equiv="refresh" content="2">
+    <script type="text/javascript" src="${base}/resource/jquery.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="${base}/resource/common.js"></script>
+    <script type="text/javascript" src="${base}/resource/easyui/easyui-validate.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="${base}/resource/ckeditor/samples/sample.css">
+    <link rel="stylesheet" type="text/css" href="${base}/resource/easyui/themes/metro-blue/easyui.css">
+</head>
+<body style="text-align: center" onload="Button1_onclick()">
+<OBJECT classid="clsid:10946843-7507-44FE-ACE8-2B3483D179B7" codebase="CVR100.cab#version=3,0,3,3"
+        id="CVR_IDCard" name="CVR_IDCard" width="0" height="0"></OBJECT>
+
+<script>
+    $(document).ready(function () {
+        window.onload = Button1_onclick();
+        //setTimeout('Button1_onclick()',2000); //指定1秒刷新一次
+    });
+
+    function ClearForm() {
+        document.all['Name'].value = "";
+        document.all['Sex'].value = "";
+        document.all['Nation'].value = "";
+        document.all['Born'].value = "";
+        document.all['Address'].value = "";
+        document.all['CardNo'].value = "";
+        document.all['IssuedAt'].value = "";
+        document.all['EffectedDate'].value = "";
+        document.all['ExpiredDate'].value = "";
+        document.all['SAMID'].value = "";
+        document.all['pic'].src = "";
+        document.all['Picture'].value = "";
+        document.all['PictureLen'].value = "";
+        return true;
+    }
+
+    function Button1_onclick() {
+        var CVR_IDCard = document.getElementById("CVR_IDCard");
+        var strReadResult = CVR_IDCard.ReadCard();
+        $('embed').remove();
+        $("#idCardInfoDlg").dialog("close");
+        if (strReadResult == "0") {
+            ClearForm();
+            document.getElementById("idCardName").value = CVR_IDCard.Name;
+            document.getElementById("idCardPic").src = CVR_IDCard.Pic;
+            document.getElementById("idCardSex").value = CVR_IDCard.Sex;
+            document.getElementById("idCardNation").value = CVR_IDCard.Nation;
+            $("#idCardInfoDlg").dialog("open");
+            document.all['Name'].value = CVR_IDCard.Name;
+            document.all['Sex'].value = CVR_IDCard.Sex;
+            document.all['Nation'].value = CVR_IDCard.Nation;
+            document.all['Born'].value = CVR_IDCard.Born;
+            document.all['Address'].value = CVR_IDCard.Address;
+            document.all['CardNo'].value = CVR_IDCard.CardNo;
+            document.all['IssuedAt'].value = CVR_IDCard.IssuedAt;
+            document.all['EffectedDate'].value = CVR_IDCard.EffectedDate;
+            document.all['ExpiredDate'].value = CVR_IDCard.ExpiredDate;
+            document.all['SAMID'].value = CVR_IDCard.SAMID;
+            document.all['pic'].src = CVR_IDCard.Pic;
+            document.all['Picture'].value = CVR_IDCard.Picture;
+            document.all['PictureLen'].value = CVR_IDCard.PictureLen;
+
+            $('body').append("<embed id='player' src='${base}/resource/sound.mp3' width='0' height='0' />");
+
+            $.ajax({
+                url: "${base}/user/saveIdCardInfo",
+                type: "post",
+                async: false, //同步执行
+                data: {"name": CVR_IDCard.Name, "sex":CVR_IDCard.Sex, "nation":CVR_IDCard.Nation, "born":CVR_IDCard.Born,
+                    "address":CVR_IDCard.Address, "cardno":CVR_IDCard.CardNo, "issuedat":CVR_IDCard.IssuedAt,
+                    "effecteddate":CVR_IDCard.EffectedDate, "expireddate":CVR_IDCard.ExpiredDate, "samid":CVR_IDCard.SAMID,
+                    "pic":CVR_IDCard.Pic, "picture":CVR_IDCard.Picture, "picturylen":CVR_IDCard.PictureLen},
+                dataType: "json",
+                success: function (data) {
+                    if (data.resultCode == 0) {
+                    } else {
+                        alert(data.description);
+                    }
+                }
+            });
+        } else {
+            $('embed').remove();
+            $("#idCardInfoDlg").dialog("close");
+            //ClearForm();
+            //alert(strReadResult);
+        }
+    }
+
+    function Button3_onclick() {
+        var CVR_IDCard = document.getElementById("CVR_IDCard");
+        CVR_IDCard.AboutBox();
+    }
+
+    //邮件选择框
+    $('#idCardInfoDlg').dialog({
+        title: '身份证信息',
+        width: 640,
+        height: 300,
+        closed: true,
+        cache: false,
+        modal: true,
+        buttons: [
+            {
+                text: '取消',
+                handler: function () {
+                    $("#idCardInfoDlg").dialog("close");
+                }
+            }
+        ]
+    });
+</script>
+&nbsp;金泓信身份证读卡平台
+<table style="width: 638px; height: 273px; border-top-style: groove; border-right-style: groove; border-left-style: groove; background-color: transparent; border-bottom-style: groove;">
+    <tr>
+        <td style="width: 98px">
+            姓名：
+        </td>
+        <td style="text-align: left" colspan="3">
+            <input id="Text1" type="text" style="width: 155px" name="Name" value="${(tidCardInfo.name)!''}" /></td>
+        <td style="width: 138px; text-align: left;" rowspan="3">
+            <img style="width: 91px; height: 108px" name="pic" src="${(tidCardInfo.picimageaddress)!''}"/></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            性别：
+        </td>
+        <td style="width: 80px">
+            <input id="Text2" type="text" name="Sex" style="width: 154px" value="${(tidCardInfo.sex)!''}" /></td>
+        <td style="width: 58px">
+            民族：
+        </td>
+        <td style="width: 59px">
+            <input id="Text3" type="text" name="Nation" style="width: 94px" value="${(tidCardInfo.nation)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            出生日期：
+        </td>
+        <td style="text-align: left;" colspan="3">
+            <input id="Text4" type="text" style="width: 151px" name="Born" value="${(tidCardInfo.born)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            地址：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text5" style="width: 505px" type="text" name="Address" value="${(tidCardInfo.address)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            身份号码：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text6" style="width: 506px" type="text" name="CardNo" value="${(tidCardInfo.cardno)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            签发机关：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text7" style="width: 505px" type="text" name="IssuedAt" value="${(tidCardInfo.issuedaddress)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px">
+            有效期限：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text8" style="width: 163px" type="text" name="EffectedDate" value="${(tidCardInfo.effectdate)!''}" />
+            至<input id="Text10" style="width: 163px" type="text" name="ExpiredDate" value="${(tidCardInfo.expiredate)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px; text-align: left;">
+            模块号码：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text9" style="width: 506px" type="text" name="SAMID" value="${(tidCardInfo.samid)!''}" /></td>
+    </tr>
+    <tr>
+        <td style="width: 98px; text-align: left; height: 136px;">
+            照片编码：
+        </td>
+        <td colspan="4" style="text-align: left; height: 136px;">
+            <textarea id="TextArea1" name="Picture" style="width: 509px; height: 115px" value="${(tidCardInfo.piccode)!''}" ></textarea></td>
+    </tr>
+    <tr>
+        <td style="width: 98px; text-align: left">
+            编码长度：
+        </td>
+        <td colspan="4" style="text-align: left">
+            <input id="Text11" style="width: 508px" type="text" name="PictureLen" value="${(tidCardInfo.piclength)!''}" /></td>
+    </tr>
+</table>
+
+<!-- 身份证读卡显示信息界面 -->
+<div id="idCardInfoDlg" data-options="iconCls:'icon-edit',modal:true">
+    <form id="idCardInfoForm"  name="idCardInfoForm">
+        <table style="width: 640px; height: 300px; border-top-style: groove; border-right-style: groove; border-left-style: groove; background-color: transparent; border-bottom-style: groove;">
+            <tr>
+                <td style="width: 98px">
+                    姓名：
+                </td>
+                <td style="text-align: left" colspan="3">
+                    <input id="idCardName" type="text" style="width: 155px" name="idCardName" /></td>
+                <td style="width: 138px; text-align: left;" rowspan="3">
+                    <img style="width: 91px; height: 108px" id="idCardPic" name="idCardPic" /></td>
+            </tr>
+            <tr>
+                <td style="width: 98px">
+                    性别：
+                </td>
+                <td style="width: 80px">
+                    <input id="idCardSex" type="text" name="idCardSex" style="width: 154px" /></td>
+                <td style="width: 58px">
+                    民族：
+                </td>
+                <td style="width: 59px">
+                    <input id="idCardNation" type="text" name="idCardNation" style="width: 94px" /></td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<input id="Button1" type="button" value="读   卡" onclick="Button1_onclick()"/>
+
+</body>
+</html>
